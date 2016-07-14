@@ -44,7 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="A-star.cs" />
+    <Compile Include="AStar.cs" />
     <Compile Include="DirectedGraph.cs" />
     <Compile Include="Heap.cs" />
     <Compile Include="Program.cs" />

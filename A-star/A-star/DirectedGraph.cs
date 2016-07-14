@@ -3,31 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
-namespace A_star
+namespace Graphs
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="NID">Node identifier - A unique identifier for each node.</typeparam>
-    /// <typeparam name="NData">Node data - Data to be stored on each node.</typeparam>
-    /// <typeparam name="EData">Edge data - Data to be stored on each edge.</typeparam>
-    class DirectedGraph<NID, NData, EData>
+    public class DirectedGraph<NodeData, EdgeData>
     {
-        Dictionary<NID, DirectedGraphNode<NID, NData>> nodes = new Dictionary<NID, DirectedGraphNode<NID, NData>>();
-        Dictionary<DirectedGraphNode<NID, NData>, Dictionary<DirectedGraphNode<NID, NData>, EData>> edges = new Dictionary<DirectedGraphNode<NID, NData>, Dictionary<DirectedGraphNode<NID, NData>, EData>>();
+        public List<DirectedGraphNode<NodeData>> nodes = new List<DirectedGraphNode<NodeData>>();
+        public Dictionary<DirectedGraphNode<NodeData>, Dictionary<DirectedGraphNode<NodeData>, DirectedGraphEdge<EdgeData>>> edges = new Dictionary<DirectedGraphNode<NodeData>, Dictionary<DirectedGraphNode<NodeData>, DirectedGraphEdge<EdgeData>>>();
 
-        public DirectedGraphNode<NID, NData> GetNode(NID id)
+        public DirectedGraphNode<NodeData> GetNode(NodeData data)
         {
-            if (nodes.ContainsKey(id))
-            {
-                return nodes[id];
-            }
+            var nodeRes = nodes.Where(x => x.data.Equals(data));
 
-            throw new ArgumentException("Node does not exist");
+            if (nodeRes.Count() == 0)
+                return null;
+
+            return nodeRes.First();
         }
 
-        public EData GetEdge(DirectedGraphNode<NID, NData> from, DirectedGraphNode<NID, NData> to)
+        public DirectedGraphEdge<EdgeData> GetEdge(DirectedGraphNode<NodeData> from, DirectedGraphNode<NodeData> to)
         {
             if (edges.ContainsKey(from) && edges[from].ContainsKey(to))
             {
@@ -36,8 +31,8 @@ namespace A_star
 
             throw new ArgumentException("Edge does not exist");
         }
-
-        public Dictionary<DirectedGraphNode<NID, NData>, EData> GetEdges(DirectedGraphNode<NID, NData> from)
+        
+        public Dictionary<DirectedGraphNode<NodeData>, DirectedGraphEdge<EdgeData>> GetEdges(DirectedGraphNode<NodeData> from)
         {
             if (edges.ContainsKey(from))
             {
@@ -47,19 +42,29 @@ namespace A_star
             return null;
         }
 
-        public void AddNode(NID id, NData data)
+        public void AddNode(DirectedGraphNode<NodeData> n)
         {
-            if (!nodes.ContainsKey(id))
+            if (!nodes.Contains(n))
             {
-                nodes.Add(id, new DirectedGraphNode<NID, NData>(id, data));
+                nodes.Add(n);
             }
         }
 
-        public void AddEdge(DirectedGraphNode<NID, NData> from, DirectedGraphNode<NID, NData> to, EData data)
+        public void AddEdge(DirectedGraphNode<NodeData> from, DirectedGraphNode<NodeData> to, DirectedGraphEdge<EdgeData> data)
         {
+            if (!nodes.Contains(from))
+            {
+                throw new ArgumentException("Node \"from\" does not exist in the graph.");
+            }
+
+            if (!nodes.Contains(to))
+            {
+                throw new ArgumentException("Node \"to\" does not exist in the graph.");
+            }
+
             if (!edges.ContainsKey(from))
             {
-                edges.Add(from, new Dictionary<DirectedGraphNode<NID, NData>, EData>());
+                edges.Add(from, new Dictionary<DirectedGraphNode<NodeData>, DirectedGraphEdge<EdgeData>>());
             }
 
             if (!edges[from].ContainsKey(to))
@@ -72,19 +77,19 @@ namespace A_star
         {
             string s = "Printing nodes:\n";
 
-            foreach (NID k in nodes.Keys)
+            foreach (DirectedGraphNode<NodeData> n in nodes)
             {
-                s += "Key=" + k.ToString() + ", Value=" + nodes[k].ToString() + "\n";
+                s += n.ToString() + "\n";
             }
 
             s += "\n--------------------------------------------\nPrinting edges:\n";
-            foreach (DirectedGraphNode<NID, NData> from in edges.Keys)
+            foreach (DirectedGraphNode<NodeData> from in edges.Keys)
             {
                 s += "from " + from.ToString() + ":\n";
 
-                foreach (DirectedGraphNode<NID, NData> to in edges[from].Keys)
+                foreach (DirectedGraphNode<NodeData> to in edges[from].Keys)
                 {
-                    s += "to: Key=" + to.ToString() + ", Value=" + edges[from][to] + "\n";
+                    s += "to: key=" + to.ToString() + ", value=" + edges[from][to].ToString() + "\n";
                 }
 
                 s += "\n";
@@ -94,20 +99,13 @@ namespace A_star
         }
     }
 
-    abstract class DirectedGraphNode<NID, NData>
+    public interface DirectedGraphNode<NodeData>
     {
-        public NID UniqueIdentifier;
-        public NData Data;
+        NodeData data { get; set; }
+    }
 
-        public DirectedGraphNode(NID uniqueIdentifier, NData data)
-        {
-            this.UniqueIdentifier = uniqueIdentifier;
-            this.Data = data;
-        }
-
-        public override string ToString()
-        {
-            return "Node: " + UniqueIdentifier.ToString() + "|" + Data.ToString();
-        }
+    public interface DirectedGraphEdge<EdgeData>
+    {
+        EdgeData data { get; set; }
     }
 }
