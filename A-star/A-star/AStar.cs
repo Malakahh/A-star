@@ -13,7 +13,7 @@ namespace AStar
         public static Node[] FindPath(Node start, Node goal, Graphs.DirectedGraph<NodeData, EData> graph, Func<Node, Node, double> heuristic)
         {
             List<Node> visited = new List<Node>();
-            dsHeap frontier = new dsHeap(new List<Node>(), dsHeap.HeapProperty.MinHeap);
+            dsHeap frontier = new dsHeap(new List<HeapNode>(), dsHeap.HeapProperty.MinHeap);
 
             start.IntermediateCost = 0;
             start.EstimatedCost = 0;
