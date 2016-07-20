@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 using System.IO;
-using Node = AStar.AStar<AStar.Vector, string>.Node;
-using Edge = AStar.AStar<AStar.Vector, string>.EdgeData;
+using Node = Pathfinding.AStar<Pathfinding.Vector, string>.Node;
+using Edge = Pathfinding.AStar<Pathfinding.Vector, string>.EdgeData;
 
-namespace AStar
+namespace Pathfinding
 {
     class Program
     {

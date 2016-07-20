@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Heap;
 using dsHeap = Heap.Heap;
 
-namespace AStar
+namespace Pathfinding
 {
     public class AStar<NodeData, EData>
     {
