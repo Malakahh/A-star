@@ -5,8 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 using System.IO;
-using Node = Pathfinding.AStar<Pathfinding.Vector, string>.Node;
-using Edge = Pathfinding.AStar<Pathfinding.Vector, string>.EdgeData;
+using GraphNode = Pathfinding.AStar<string, string>.Node;
+using GraphEdge = Pathfinding.AStar<string, string>.EdgeData;
+using MapNode = Pathfinding.AStar<Pathfinding.Vector, string>.Node;
+using MapEdge = Pathfinding.AStar<Pathfinding.Vector, string>.EdgeData;
 
 namespace Pathfinding
 {
@@ -14,26 +16,55 @@ namespace Pathfinding
     {
         static void Main(string[] args)
         {
-            
+            GraphTest();
+            //MapTest();
+        }
+
+        static void GraphTest()
+        {
+            Graphs.DirectedGraph<string, string> graph = new Graphs.DirectedGraph<string, string>();
+
+            //Nodes
+            graph.AddNode(new GraphNode("A"));
+            graph.AddNode(new GraphNode("B"));
+            graph.AddNode(new GraphNode("C"));
+            graph.AddNode(new GraphNode("D"));
+            graph.AddNode(new GraphNode("E"));
+            graph.AddNode(new GraphNode("F"));
+
+            //Edges
+            graph.AddEdge(graph.GetNode("A"), graph.GetNode("B"), new GraphEdge("A -> B", 10));
+            graph.AddEdge(graph.GetNode("A"), graph.GetNode("C"), new GraphEdge("A -> C", 2));
+            graph.AddEdge(graph.GetNode("B"), graph.GetNode("E"), new GraphEdge("B -> E", 4));
+            graph.AddEdge(graph.GetNode("B"), graph.GetNode("F"), new GraphEdge("B -> F", 1));
+            graph.AddEdge(graph.GetNode("C"), graph.GetNode("D"), new GraphEdge("C -> D", 5));
+            graph.AddEdge(graph.GetNode("D"), graph.GetNode("E"), new GraphEdge("D -> E", 6));
+            graph.AddEdge(graph.GetNode("F"), graph.GetNode("A"), new GraphEdge("F -> A", 0));
+            graph.AddEdge(graph.GetNode("F"), graph.GetNode("E"), new GraphEdge("F -> E", 4));
+
+            GraphNode[] path = AStar<string, string>.FindPath((GraphNode)graph.GetNode("A"), (GraphNode)graph.GetNode("E"), graph, hGraphTest);
+
+            foreach (GraphNode n in path)
+            {
+                Console.WriteLine(n);
+            }
+
+            Console.ReadKey();
+        }
+
+        static double hGraphTest(GraphNode n, GraphNode goal)
+        {
+            return Math.Ceiling(n.IntermediateCost / 3);
+        }
+
+        static double hMapTest(MapNode n, MapNode goal)
+        {
+            return n.data.DistanceTo(goal.data);
+        }
+
+        static void MapTest()
+        {
             Graphs.DirectedGraph<Vector, string> graph = new Graphs.DirectedGraph<Vector, string>();
-            //graph.AddNode(new Node(new Vector(1, 2)));
-            //graph.AddNode(new Node(new Vector(2, 3)));
-            //graph.AddEdge(graph.nodes[0], graph.nodes[1], new Edge("1,2 -> 2,3", 1));
-            //graph.AddEdge(graph.nodes[1], graph.nodes[0], new Edge("2,3 -> 1,2", 2));
-            //Console.WriteLine(graph.ToString());
-            //Console.ReadKey();
-
-
-
-
-
-
-
-            //graph.AddNode(new Vector(1, 2), "This is 1-2");
-            //graph.AddNode(new Vector(2, 3), "This is 2-3");
-            //graph.AddEdge(graph.GetNode(new Vector(1,2)), graph.GetNode(new Vector(2, 3)), 1.2);
-            //graph.AddEdge(graph.GetNode(new Vector(2, 3)), graph.GetNode(new Vector(1, 2)), 2.3);
-            //Console.Write(graph.ToString());
 
             GraphicsUnit gu = GraphicsUnit.Pixel;
             Vector start = new Vector(0, 0);
@@ -45,6 +76,7 @@ namespace Pathfinding
             int width = (int)map.GetBounds(ref gu).Width;
             int height = (int)map.GetBounds(ref gu).Height;
 
+            //Build nodes
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
@@ -54,26 +86,29 @@ namespace Pathfinding
                     if (c == Color.FromArgb(0, 255, 0)) // start
                     {
                         start = new Vector(x, y);
-                        graph.AddNode(new Node(start));
+                        graph.AddNode(new MapNode(start));
                     }
                     else if (c == Color.FromArgb(255, 0, 0)) // goal
                     {
                         goal = new Vector(x, y);
-                        graph.AddNode(new Node(goal));
+                        graph.AddNode(new MapNode(goal));
                     }
                     else if (c == Color.FromArgb(255, 255, 255)) //blank
                     {
-                        graph.AddNode(new Node(new Vector(x, y)));
+                        graph.AddNode(new MapNode(new Vector(x, y)));
                     }
                 }
+
+                Console.WriteLine($"N - x: {x}");
             }
 
+            //Build edges
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
                 {
                     Vector c = new Vector(x, y);
-                    Node n = (Node)graph.GetNode(c);
+                    MapNode n = (MapNode)graph.GetNode(c);
 
                     if (n == null)
                         continue;
@@ -83,14 +118,14 @@ namespace Pathfinding
                     {
                         var m = graph.GetNode(new Vector(x, y + 1));
                         if (m != null)
-                            graph.AddEdge(n, m, new Edge(n + "->" + m, 1));
+                            graph.AddEdge(n, m, new MapEdge(n + "->" + m, 1));
                     }
 
                     if (y - 1 >= 0)
                     {
                         var m = graph.GetNode(new Vector(x, y - 1));
                         if (m != null)
-                            graph.AddEdge(n, m, new Edge(n + "->" + m, 1));
+                            graph.AddEdge(n, m, new MapEdge(n + "->" + m, 1));
                     }
 
                     // x + 1
@@ -98,20 +133,20 @@ namespace Pathfinding
                     {
                         var m = graph.GetNode(new Vector(x + 1, y));
                         if (m != null)
-                            graph.AddEdge(n, m, new Edge(n + "->" + m, 1));
+                            graph.AddEdge(n, m, new MapEdge(n + "->" + m, 1));
 
                         if (y + 1 < height)
                         {
                             var o = graph.GetNode(new Vector(x + 1, y + 1));
                             if (o != null)
-                                graph.AddEdge(n, o, new Edge(n + "->" + o, n.data.DistanceTo(o.data)));
+                                graph.AddEdge(n, o, new MapEdge(n + "->" + o, n.data.DistanceTo(o.data)));
                         }
 
                         if (y - 1 >= 0)
                         {
                             var o = graph.GetNode(new Vector(x + 1, y - 1));
                             if (o != null)
-                                graph.AddEdge(n, o, new Edge(n + "->" + o, n.data.DistanceTo(o.data)));
+                                graph.AddEdge(n, o, new MapEdge(n + "->" + o, n.data.DistanceTo(o.data)));
                         }
                     }
 
@@ -120,28 +155,31 @@ namespace Pathfinding
                     {
                         var m = graph.GetNode(new Vector(x - 1, y));
                         if (m != null)
-                            graph.AddEdge(n, m, new Edge(n + "->" + m, 1));
+                            graph.AddEdge(n, m, new MapEdge(n + "->" + m, 1));
 
                         if (y + 1 < height)
                         {
                             var o = graph.GetNode(new Vector(x - 1, y + 1));
                             if (o != null)
-                                graph.AddEdge(n, o, new Edge(n + "->" + o, n.data.DistanceTo(o.data)));
+                                graph.AddEdge(n, o, new MapEdge(n + "->" + o, n.data.DistanceTo(o.data)));
                         }
 
                         if (y - 1 >= 0)
                         {
                             var o = graph.GetNode(new Vector(x - 1, y - 1));
                             if (o != null)
-                                graph.AddEdge(n, o, new Edge(n + "->" + o, n.data.DistanceTo(o.data)));
+                                graph.AddEdge(n, o, new MapEdge(n + "->" + o, n.data.DistanceTo(o.data)));
                         }
                     }
                 }
+
+                Console.WriteLine($"E - x: {x}");
             }
 
-            Node[] path = AStar<Vector, string>.FindPath((Node)graph.GetNode(start), (Node)graph.GetNode(goal), graph, h);
+            MapNode[] path = AStar<Vector, string>.FindPath((MapNode)graph.GetNode(start), (MapNode)graph.GetNode(goal), graph, hMapTest);
 
-            foreach (Node n in path)
+            //Color path
+            foreach (MapNode n in path)
             {
                 if (!(n.data.x == start.x && n.data.y == start.y) &&
                     !(n.data.x == goal.x && n.data.y == goal.y))
@@ -153,14 +191,9 @@ namespace Pathfinding
             map.Save(file + "2.png");
             Console.WriteLine("DonnoDK");
             Console.ReadKey();
-
-        }
-
-        static double h(Node n, Node goal)
-        {
-            return n.data.DistanceTo(goal.data);
         }
     }
+
 
     struct Vector
     {

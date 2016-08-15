@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Heap;
-using dsHeap = Heap.Heap;
+using dataStructureHeap = Heap.Heap;
 
 namespace Pathfinding
 {
@@ -13,18 +13,17 @@ namespace Pathfinding
         public static Node[] FindPath(Node start, Node goal, Graphs.DirectedGraph<NodeData, EData> graph, Func<Node, Node, double> heuristic)
         {
             List<Node> visited = new List<Node>();
-            dsHeap frontier = new dsHeap(new List<HeapNode>(), dsHeap.HeapProperty.MinHeap);
+            dataStructureHeap frontier = new dataStructureHeap(new List<HeapNode>(), dataStructureHeap.HeapProperty.MinHeap);
 
             start.IntermediateCost = 0;
             start.EstimatedCost = 0;
             start.Parent = null;
             frontier.HeapInsert(start);
 
+            //Continue as long as there are nodes to explore in the frontier
             while (frontier.Count > 0)
             {
                 Node current = (Node)frontier.HeapExtractRoot();
-
-                Console.WriteLine(current);
 
                 if (current == goal)
                 {
@@ -32,7 +31,7 @@ namespace Pathfinding
                 }
 
                 visited.Add(current);
-                foreach (var edgeTo in graph.GetEdges(current))
+                foreach (var edgeTo in graph.GetEdges(current)) //Expand frontier
                 {
                     Node to = (Node)edgeTo.Key;
 
@@ -42,7 +41,7 @@ namespace Pathfinding
                     }
 
                     double tentativeScore = current.IntermediateCost + ((EdgeData)edgeTo.Value).cost;
-                    if (tentativeScore < to.IntermediateCost)
+                    if (tentativeScore < to.IntermediateCost) //Best path to this node so far
                     {
                         to.IntermediateCost = tentativeScore;
                         to.EstimatedCost = tentativeScore + heuristic(to, goal);
@@ -53,7 +52,6 @@ namespace Pathfinding
                     {
                         frontier.HeapInsert(to);
                     }
-
                 }
             }
 
